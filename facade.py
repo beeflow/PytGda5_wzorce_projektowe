@@ -1,7 +1,6 @@
 """copyright (c) 2020 Beeflow Ltd.
 
 Author Rafal Przetakowski <rafal.p@beeflow.co.uk>"""
-from typing import List
 
 
 class Subscriber:
@@ -28,11 +27,13 @@ class Publisher:
 
 
 class Team:
-    def __init__(self, publisher: Publisher, team_members: List[Subscriber]):
+    def __init__(self, publisher, sub_factory, team_members):
         self.publisher = publisher
 
-        for subscriber in team_members:
-            self.publisher.register(subscriber)
+        for member in team_members:
+            self.publisher.register(
+                sub_factory.create(member)
+            )
 
     def add_member(self, subscriber: Subscriber):
         self.publisher.register(subscriber)
@@ -41,11 +42,18 @@ class Team:
         self.publisher.dispatch(message)
 
 
-if __name__ == '__main__':
-    names = ('Tomek', 'Bobek', 'Ola', 'Marta')
-    team_members = [Subscriber(name) for name in names]
-    team = Team(Publisher(), team_members)
-    team.dispatch('Obiad gotowy')
+class SubscriberFactory:
+    def create(self, name):
+        return Subscriber(name)
 
-    team.add_member(Subscriber('Arek'))
-    team.dispatch('Kolacja gotowa')
+
+if __name__ == '__main__':
+    team_members = ('Ania', 'Tomek', 'Paweł', 'Roman')
+    team = Team(Publisher(), SubscriberFactory(), team_members)
+
+    team.dispatch('Obiad gotowy')
+    print()
+    team_members = ('Ania', 'Tomek', 'Paweł', 'Roman', 'Arek')
+    kolacja_team = Team(Publisher(), SubscriberFactory(), team_members)
+
+    kolacja_team.dispatch('Kolacja gotowa')
